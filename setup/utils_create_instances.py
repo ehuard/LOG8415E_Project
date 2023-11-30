@@ -43,6 +43,7 @@ def create_key_pair(ec2_client, key_name):
         return existing_key_pair
     # Key pair doesn't exist; create a new one
     try:
+        print("Creating a new key pair")
         response = ec2_client.create_key_pair(KeyName=key_name)
         key_pair = response['KeyMaterial']
         # Save the key pair to a pem file
