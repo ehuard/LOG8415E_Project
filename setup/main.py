@@ -28,17 +28,21 @@ if __name__ == "__main__":
 
     security_group = utils_instances.create_security_group(ec2_client, "project_sg")
 
-    instances_id = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
+    instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
 
+    instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
+    instances_id_slaves = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 2)
+    
+    all_instances_id = instance_id_standalone + instance_id_master + instances_id_slaves
     # We wait for the instances to be running
-    utils_instances.wait_instances_to_run(ec2_client, instances_id)
+    utils_instances.wait_instances_to_run(ec2_client, all_instances_id)
     # We get the public dns name
-    instances_dns = [utils_instances.get_public_dns(ec2_client, id) for id in instances_id]
+    instances_dns = [utils_instances.get_public_dns(ec2_client, id) for id in all_instances_id]
     print(instances_dns)
 
     # write instance id and public dns in a file so we can use this information in other scripts
-    with open('./instances_info.txt', 'w') as f:
-        f.write(f"{instances_id[0]} {instances_dns[0]}\n")
+    #with open('./instances_info.txt', 'w') as f:
+    #    f.write(f"{instances_id[0]} {instances_dns[0]}\n")
 
     time.sleep(5)
     ssh = paramiko.SSHClient()
