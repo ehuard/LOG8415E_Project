@@ -3,6 +3,7 @@ import utils_create_instances as utils_instances
 import paramiko
 from scp import SCPClient
 import time
+import json
 
 
 if __name__ == "__main__":
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     key_pair_name = "key_pair_project" 
     # Create EC2 key pair
     key_pair = utils_instances.create_key_pair(ec2_client, key_pair_name)
+    info = {}
 
     # We want to delete everything previously created with the same name
     # so we can create them again without any conflict
@@ -29,20 +31,31 @@ if __name__ == "__main__":
     security_group = utils_instances.create_security_group(ec2_client, "project_sg")
 
     instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
-
+    info["standalone"] = {"id":instance_id_standalone}
     instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
-    instances_id_slaves = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 2)
+    info["master"] = {"id":instance_id_master}
+    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 2)
+    info["workers"] = [None,None,None]
+    for idx,instances_id_work in enumerate(instances_id_workers):
+        info["workers"][idx] = {"id":instances_id_work}
     
-    all_instances_id = instance_id_standalone + instance_id_master + instances_id_slaves
+    all_instances_id = instance_id_standalone + instance_id_master + instances_id_workers
     # We wait for the instances to be running
     utils_instances.wait_instances_to_run(ec2_client, all_instances_id)
     # We get the public dns name
     instances_dns = [utils_instances.get_public_dns(ec2_client, id) for id in all_instances_id]
+    info["standalone"]["dns"] = instances_dns[0]
+    info["master"]["dns"] = instances_dns[1]
+    for idx,instances_id_work in enumerate(instances_id_workers):
+        info["workers"][idx]["dns"] = instances_dns[2+idx]
     print(instances_dns)
 
     # write instance id and public dns in a file so we can use this information in other scripts
     #with open('./instances_info.txt', 'w') as f:
     #    f.write(f"{instances_id[0]} {instances_dns[0]}\n")
+    
+    with open('data.json', 'w') as fp:
+        json.dump(info, fp)
 
     time.sleep(5)
     ssh = paramiko.SSHClient()

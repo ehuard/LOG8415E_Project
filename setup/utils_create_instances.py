@@ -203,6 +203,28 @@ def get_public_dns(ec2_client, instance_id):
     return public_dns
 
 
+def get_private_dns(ec2_client, instance_id):
+    """
+    Returns the private DNS associated with the instance whose id is instance_id.
+    The instance needs to be in a running state.
+
+    Parameters:
+    - ec2_client: Boto3 EC2 client.
+    - instance_id: Identifier of the instance.
+
+    Returns:
+    - The private DNS name of the instance that can be use to connect through SSH
+    """
+    # Wait for the instance to be in the 'running' state
+    while True:
+        response = ec2_client.describe_instances(InstanceIds=[instance_id])
+        state = response['Reservations'][0]['Instances'][0]['State']['Name']
+        if state == 'running':
+            break
+    private_dns = response['Reservations'][0]['Instances'][0].get('PrivateDnsName')
+    return private_dns
+
+
 def delete_security_group_by_name(ec2_client, group_name):
     """
     Delete a security named 'group_name'.
