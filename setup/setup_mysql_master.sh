@@ -30,6 +30,20 @@ source /etc/profile.d/mysqlc.sh
 sudo apt-get -y install libncurses5
 
 
+# Downloading the database
+wget https://downloads.mysql.com/docs/sakila-db.tar.gz
+tar -xzvf sakila-db.tar.gz
+rm sakila-db.tar.gz
+
+# Create Sakila database
+sudo mysql -u root -e "CREATE DATABASE IF NOT EXISTS sakila;"
+# Load Sakila schema
+sudo mysql -u root -e "SOURCE sakila-db/sakila-schema.sql;"
+# Load Sakila data
+sudo mysql -u root -e "SOURCE sakila-db/sakila-data.sql;"
+# use the database
+sudo mysql -u root -e "USE sakila;"
+
 ############################################
 # Proper to the master:
 cd ~
@@ -59,3 +73,7 @@ scripts/mysql_install_db --basedir=/opt/mysqlcluster/home/mysqlc --no-defaults -
 
 # Start management node
 # ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf  
+
+
+# after starting datanodes
+# mysqld --defaults-file=/opt/mysqlcluster/deploy/conf/my.cnf --user=root &

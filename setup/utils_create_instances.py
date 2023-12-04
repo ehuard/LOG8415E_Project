@@ -55,7 +55,7 @@ def create_key_pair(ec2_client, key_name):
         return None
 
 
-def create_security_group(client, name, description="Default TP1 security group"):
+def create_security_group(client, name, ports, description="Default security group"):
     """
     Create a security group and returns its id
 
@@ -65,6 +65,8 @@ def create_security_group(client, name, description="Default TP1 security group"
         The ec2 client
     name : string
         Name of the security group
+    ports: int[]
+        The ports that can receive and emit traffic
     description : string, optional
         Description of the security group
 
@@ -77,29 +79,15 @@ def create_security_group(client, name, description="Default TP1 security group"
         response = client.create_security_group(GroupName=name, Description=description)
         # Define SSH (port 22) and HTTP (port 80) inbound rules + port 5000 (used for flask)
         id = response["GroupId"]
+        permissions = []
+        for port in ports:
+            permissions.append({'IpProtocol': 'tcp',
+                    'FromPort': port,
+                    'ToPort': port,
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],})
         client.authorize_security_group_ingress(
             GroupId=id,
-            IpPermissions=[
-                {
-                    'IpProtocol': 'tcp',
-                    'FromPort': 22,
-                    'ToPort': 22,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
-                },
-                {
-                    'IpProtocol': 'tcp',
-                    'FromPort': 80,
-                    'ToPort': 80,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
-                },
-                { # We also add the port 5000 to our rules because we will deploy the flask app in user mode on this port 
-                # (80 is a privileged port)
-                    'IpProtocol': 'tcp',
-                    'FromPort': 5000,
-                    'ToPort': 5000,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}], # for all IP adresses
-                },
-            ],
+            IpPermissions= permissions
         )
         return id
     except Exception as e:

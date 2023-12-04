@@ -29,13 +29,13 @@ if __name__ == "__main__":
     for group_name in ["project_sg"]:
         deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)
 
-    security_group = utils_instances.create_security_group(ec2_client, "project_sg")
+    security_group = utils_instances.create_security_group(ec2_client, "project_sg", [22, 1186, 3306, 5000])
 
     instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
     info["standalone"] = {"id":instance_id_standalone}
     instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
     info["master"] = {"id":instance_id_master}
-    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 2)
+    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
     info["workers"] = [None,None,None]
     for idx,instances_id_work in enumerate(instances_id_workers):
         info["workers"][idx] = {"id":instances_id_work}
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "standalone": {"id":instance_id_standalone, "private_dns":private_dns_list[0], "public_dns":public_dns_list[0]},
         "master":{"id":instance_id_master, "private_dns":private_dns_list[1], "public_dns":public_dns_list[1]},
         "workers":[{"id":instances_id_workers[0], "private_dns":private_dns_list[2], "public_dns":public_dns_list[2]},
-                   {"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3]},
+                   #{"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3]},
                    ]
     }
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     with open('data.json', 'w') as fp:
         json.dump(info, fp)
 
-    time.sleep(5)
+    time.sleep(15)
     #############################################################
     ################  STANDALONE INIT ###########################
     ssh = paramiko.SSHClient()
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     ssh.close()
 
     #############################################################
-    ################  MASTER INIT ###########################
+    ################  MASTER INIT ###############################
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -99,12 +99,45 @@ if __name__ == "__main__":
     stdin, stdout, stderr = ssh.exec_command(command)
     command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
     stdin, stdout, stderr = ssh.exec_command(command)
-    time.sleep(120)
+    ssh.close()
+
+    #############################################################
+    ################  WORKERS INIT ##############################
+    for dns in public_dns_list[2:]:
+        ssh = paramiko.SSHClient()
+        ssh.load_system_host_keys()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(dns, username="ubuntu", key_filename="key_pair_project.pem")
+
+        with SCPClient(ssh.get_transport()) as scp:
+            scp.put("setup/setup_mysql_slaves.sh", remote_path='initialize.sh')
+
+        command = f'chmod 777 initialize.sh'
+        stdin, stdout, stderr = ssh.exec_command(command)
+        command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
+        stdin, stdout, stderr = ssh.exec_command(command)
+        ssh.close()
+
+
+    time.sleep(120) # wait enough time so first time of initialization is over
+
+    #############################################################
+    ################  MASTER LAUNCH #############################
+    ssh.connect(public_dns_list[1], username="ubuntu", key_filename="key_pair_project.pem")
     config_master = utils_scripts.get_master_config(info)
     command = f"echo \"{config_master}\" > /opt/mysqlcluster/deploy/conf/config.ini"
     stdin, stdout, stderr = ssh.exec_command(command)
     time.sleep(1)
-    command = f'source /etc/profile.d/mysqlc.sh \n\
-    ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf  1>>std.txt 2>>err.txt'
+    command = utils_scripts.get_start_master_cmd()
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
+    time.sleep(5)
+
+    #############################################################
+    ################  WORKERS LAUNCH ############################
+    for dns in public_dns_list[2:]:
+        ssh.connect(dns, username="ubuntu", key_filename="key_pair_project.pem")
+
+        command = utils_scripts.get_start_datanode_cmd(info)
+        stdin, stdout, stderr = ssh.exec_command(command)
+        ssh.close()
