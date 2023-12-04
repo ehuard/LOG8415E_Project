@@ -33,8 +33,8 @@ sudo apt-get -y install libncurses5
 ############################################
 # Proper to the master:
 cd ~
-sudo mkdir -p opt/mysqlcluster/deploy
-cd opt/mysqlcluster/deploy
+sudo mkdir -p /opt/mysqlcluster/deploy
+cd /opt/mysqlcluster/deploy
 # give all rights to the user "ubuntu" there
 sudo chown ubuntu: .
 sudo chmod u+w .
@@ -48,3 +48,14 @@ ndbcluster
 datadir=/opt/mysqlcluster/deploy/mysqld_data
 basedir=/opt/mysqlcluster/home/mysqlc
 port=3306" >> my.cnf
+
+
+# create config.ini script in python
+
+
+cd /opt/mysqlcluster/home/mysqlc
+scripts/mysql_install_db --basedir=/opt/mysqlcluster/home/mysqlc --no-defaults --datadir=/opt/mysqlcluster/deploy/mysqld_data
+
+
+# Start management node
+# ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf  

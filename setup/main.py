@@ -1,5 +1,6 @@
 import boto3
 import utils_create_instances as utils_instances
+import utils_create_scripts as utils_scripts
 import paramiko
 from scp import SCPClient
 import time
@@ -43,12 +44,22 @@ if __name__ == "__main__":
     # We wait for the instances to be running
     utils_instances.wait_instances_to_run(ec2_client, all_instances_id)
     # We get the public dns name
-    instances_dns = [utils_instances.get_public_dns(ec2_client, id) for id in all_instances_id]
-    info["standalone"]["dns"] = instances_dns[0]
-    info["master"]["dns"] = instances_dns[1]
+    public_dns_list = [utils_instances.get_public_dns(ec2_client, id) for id in all_instances_id]
+    private_dns_list = [utils_instances.get_private_dns(ec2_client, id) for id in all_instances_id]
+
+    info = {
+        "standalone": {"id":instance_id_standalone, "private_dns":private_dns_list[0], "public_dns":public_dns_list[0]},
+        "master":{"id":instance_id_master, "private_dns":private_dns_list[1], "public_dns":public_dns_list[1]},
+        "workers":[{"id":instances_id_workers[0], "private_dns":private_dns_list[2], "public_dns":public_dns_list[2]},
+                   {"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3]},
+                   ]
+    }
+
+    info["standalone"]["dns"] = public_dns_list[0]
+    info["master"]["dns"] = public_dns_list[1]
     for idx,instances_id_work in enumerate(instances_id_workers):
-        info["workers"][idx]["dns"] = instances_dns[2+idx]
-    print(instances_dns)
+        info["workers"][idx]["dns"] = public_dns_list[2+idx]
+    print(public_dns_list)
 
     # write instance id and public dns in a file so we can use this information in other scripts
     #with open('./instances_info.txt', 'w') as f:
@@ -58,10 +69,12 @@ if __name__ == "__main__":
         json.dump(info, fp)
 
     time.sleep(5)
+    #############################################################
+    ################  STANDALONE INIT ###########################
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(instances_dns[0], username="ubuntu", key_filename="key_pair_project.pem")
+    ssh.connect(public_dns_list[0], username="ubuntu", key_filename="key_pair_project.pem")
 
     with SCPClient(ssh.get_transport()) as scp:
         scp.put("setup/setup_mysql_standalone.sh", remote_path='initialize.sh')
@@ -69,5 +82,29 @@ if __name__ == "__main__":
     command = f'chmod 777 initialize.sh'
     stdin, stdout, stderr = ssh.exec_command(command)
     command = f'. ./initialize.sh 1>std.txt 2>err.txt'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()
+
+    #############################################################
+    ################  MASTER INIT ###########################
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(public_dns_list[1], username="ubuntu", key_filename="key_pair_project.pem")
+
+    with SCPClient(ssh.get_transport()) as scp:
+        scp.put("setup/setup_mysql_master.sh", remote_path='initialize.sh')
+
+    command = f'chmod 777 initialize.sh'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(120)
+    config_master = utils_scripts.get_master_config(info)
+    command = f"echo \"{config_master}\" > /opt/mysqlcluster/deploy/conf/config.ini"
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(1)
+    command = f'source /etc/profile.d/mysqlc.sh \n\
+    ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf  1>>std.txt 2>>err.txt'
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()

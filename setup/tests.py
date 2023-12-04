@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     with open('data.json', 'w') as fp:
         json.dump(info, fp)
-        
+
     script = utils_scripts.get_master_config(info)
     print(info)
     print(dns_list)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
 
 
-    command = f"echo \"{script}\" > opt/mysqlcluster/deploy/conf/config.ini"
+    command = f"echo \"{script}\" > /opt/mysqlcluster/deploy/conf/config.ini"
     stdin, stdout, stderr = ssh.exec_command(command)
   
     ssh.close()
