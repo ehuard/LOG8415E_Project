@@ -80,6 +80,91 @@ def create_security_group(client, name, ports, description="Default security gro
         # Define SSH (port 22) and HTTP (port 80) inbound rules + port 5000 (used for flask)
         id = response["GroupId"]
         permissions = []
+        client.authorize_security_group_ingress(
+            GroupId=id,
+            IpPermissions=[
+                {
+                    'IpProtocol': '-1',
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
+                    'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
+                }
+            ]
+        )
+        # Authorize all outbound traffic
+        return id
+        client.authorize_security_group_egress(
+            GroupId=id,
+            IpPermissions=[
+                {
+                    'IpProtocol': '-1',
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
+                    'Ipv6Ranges': [{'CidrIpv6': '::/0'}]
+                }
+            ]
+        )
+        return id
+        client.authorize_security_group_ingress(
+                GroupId=id,
+                IpPermissions=[
+                    {
+                        'FromPort': -1,
+                        'ToPort': -1,
+                        'IpProtocol': 'ICMP',
+                        'IpRanges': [
+                            {
+                                'CidrIp': '0.0.0.0/0',
+                                'Description': "MySQL"
+                            },
+                        ]
+                    }
+                ]
+            )
+        client.authorize_security_group_egress(
+                GroupId=id,
+                IpPermissions=[
+                    {
+                        'FromPort': -1,
+                        'ToPort': -1,
+                        'IpProtocol': 'ICMP',
+                        'IpRanges': [
+                            {
+                                'CidrIp': '0.0.0.0/0',
+                                'Description': "MySQL"
+                            },
+                        ]
+                    }
+                ]
+            )
+        return id
+    except Exception as e:
+        print(f"An error occurred while creating the security group: {e}")
+        return None
+
+def create_security_group_legacy(client, name, ports, description="Default security group"):
+    """
+    Create a security group and returns its id
+
+    Parameters
+    ----------
+    client :
+        The ec2 client
+    name : string
+        Name of the security group
+    ports: int[]
+        The ports that can receive and emit traffic
+    description : string, optional
+        Description of the security group
+
+     Returns
+    -------
+    id : int
+        The security group id
+    """
+    try : 
+        response = client.create_security_group(GroupName=name, Description=description)
+        # Define SSH (port 22) and HTTP (port 80) inbound rules + port 5000 (used for flask)
+        id = response["GroupId"]
+        permissions = []
         for port in ports:
             permissions.append({'IpProtocol': 'tcp',
                     'FromPort': port,
@@ -89,6 +174,39 @@ def create_security_group(client, name, ports, description="Default security gro
             GroupId=id,
             IpPermissions= permissions
         )
+
+        client.authorize_security_group_ingress(
+                GroupId=id,
+                IpPermissions=[
+                    {
+                        'FromPort': -1,
+                        'ToPort': -1,
+                        'IpProtocol': 'ICMP',
+                        'IpRanges': [
+                            {
+                                'CidrIp': '0.0.0.0/0',
+                                'Description': "MySQL"
+                            },
+                        ]
+                    }
+                ]
+            )
+        client.authorize_security_group_egress(
+                GroupId=id,
+                IpPermissions=[
+                    {
+                        'FromPort': -1,
+                        'ToPort': -1,
+                        'IpProtocol': 'ICMP',
+                        'IpRanges': [
+                            {
+                                'CidrIp': '0.0.0.0/0',
+                                'Description': "MySQL"
+                            },
+                        ]
+                    }
+                ]
+            )
         return id
     except Exception as e:
         print(f"An error occurred while creating the security group: {e}")
@@ -211,6 +329,27 @@ def get_private_dns(ec2_client, instance_id):
             break
     private_dns = response['Reservations'][0]['Instances'][0].get('PrivateDnsName')
     return private_dns
+
+def get_private_ip(ec2_client, instance_id):
+    """
+    Returns the private ip associated with the instance whose id is instance_id.
+    The instance needs to be in a running state.
+
+    Parameters:
+    - ec2_client: Boto3 EC2 client.
+    - instance_id: Identifier of the instance.
+
+    Returns:
+    - The private ip of the instance that will be used in firewall rules
+    """
+    # Wait for the instance to be in the 'running' state
+    while True:
+        response = ec2_client.describe_instances(InstanceIds=[instance_id])
+        state = response['Reservations'][0]['Instances'][0]['State']['Name']
+        if state == 'running':
+            break
+    private_ip = response['Reservations'][0]['Instances'][0].get('PrivateIpAddress')
+    return private_ip
 
 
 def delete_security_group_by_name(ec2_client, group_name):

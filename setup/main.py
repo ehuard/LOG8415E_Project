@@ -29,13 +29,16 @@ if __name__ == "__main__":
     for group_name in ["project_sg"]:
         deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)
 
-    security_group = utils_instances.create_security_group(ec2_client, "project_sg", [22, 1186, 3306, 5000])
+    # https://stackoverflow.com/questions/43313528/data-nodes-cannot-connect-to-mysql-cluster
+    # security_group = utils_instances.create_security_group(ec2_client, "project_sg", [22, 1186, 3306, 5000])
+    #security_group = utils_instances.create_security_group_legacy(ec2_client, "project_sg", [22, 53, 58, 68, 1186, 2202, 2206, 3306, 5000, 8336])
+    security_group = utils_instances.create_security_group_legacy(ec2_client, "project_sg", [22, 1186, 3306, 2206])
 
     instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
     info["standalone"] = {"id":instance_id_standalone}
     instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
     info["master"] = {"id":instance_id_master}
-    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
+    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 3)
     info["workers"] = [None,None,None]
     for idx,instances_id_work in enumerate(instances_id_workers):
         info["workers"][idx] = {"id":instances_id_work}
@@ -46,29 +49,24 @@ if __name__ == "__main__":
     # We get the public dns name
     public_dns_list = [utils_instances.get_public_dns(ec2_client, id) for id in all_instances_id]
     private_dns_list = [utils_instances.get_private_dns(ec2_client, id) for id in all_instances_id]
-
+    private_ip_list = [utils_instances.get_private_ip(ec2_client, id) for id in all_instances_id]
     info = {
-        "standalone": {"id":instance_id_standalone, "private_dns":private_dns_list[0], "public_dns":public_dns_list[0]},
-        "master":{"id":instance_id_master, "private_dns":private_dns_list[1], "public_dns":public_dns_list[1]},
-        "workers":[{"id":instances_id_workers[0], "private_dns":private_dns_list[2], "public_dns":public_dns_list[2]},
-                   #{"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3]},
+        "standalone": {"id":instance_id_standalone[0], "private_dns":private_dns_list[0], "public_dns":public_dns_list[0], "private_ip":private_ip_list[0]},
+        "master":{"id":instance_id_master[0], "private_dns":private_dns_list[1], "public_dns":public_dns_list[1], "private_ip":private_ip_list[1]},
+        "workers":[{"id":instances_id_workers[0], "private_dns":private_dns_list[2], "public_dns":public_dns_list[2], "private_ip":private_ip_list[2]},
+                   {"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3], "private_ip":private_ip_list[3]},
+                   {"id":instances_id_workers[2], "private_dns":private_dns_list[4], "public_dns":public_dns_list[4], "private_ip":private_ip_list[4]}
                    ]
     }
 
-    info["standalone"]["dns"] = public_dns_list[0]
-    info["master"]["dns"] = public_dns_list[1]
-    for idx,instances_id_work in enumerate(instances_id_workers):
-        info["workers"][idx]["dns"] = public_dns_list[2+idx]
     print(public_dns_list)
 
     # write instance id and public dns in a file so we can use this information in other scripts
-    #with open('./instances_info.txt', 'w') as f:
-    #    f.write(f"{instances_id[0]} {instances_dns[0]}\n")
-    
     with open('data.json', 'w') as fp:
         json.dump(info, fp)
-
+#    public_dns_list = None
     time.sleep(15)
+
     #############################################################
     ################  STANDALONE INIT ###########################
     ssh = paramiko.SSHClient()
@@ -84,7 +82,7 @@ if __name__ == "__main__":
     command = f'. ./initialize.sh 1>std.txt 2>err.txt'
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
-
+    
     #############################################################
     ################  MASTER INIT ###############################
     ssh = paramiko.SSHClient()
@@ -97,6 +95,8 @@ if __name__ == "__main__":
 
     command = f'chmod 777 initialize.sh'
     stdin, stdout, stderr = ssh.exec_command(command)
+    #command = utils_scripts.get_firewall_cmd(info)
+    #stdin, stdout, stderr = ssh.exec_command(command)
     command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
@@ -114,12 +114,14 @@ if __name__ == "__main__":
 
         command = f'chmod 777 initialize.sh'
         stdin, stdout, stderr = ssh.exec_command(command)
+        #command = utils_scripts.get_firewall_cmd(info)
+        #stdin, stdout, stderr = ssh.exec_command(command)
         command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
         stdin, stdout, stderr = ssh.exec_command(command)
         ssh.close()
 
 
-    time.sleep(120) # wait enough time so first time of initialization is over
+    time.sleep(120) # wait enough time so first part of initialization is over
 
     #############################################################
     ################  MASTER LAUNCH #############################
@@ -128,11 +130,15 @@ if __name__ == "__main__":
     command = f"echo \"{config_master}\" > /opt/mysqlcluster/deploy/conf/config.ini"
     stdin, stdout, stderr = ssh.exec_command(command)
     time.sleep(1)
+    command = utils_scripts.get_mycnf_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(1)
     command = utils_scripts.get_start_master_cmd()
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
-    time.sleep(5)
-
+    time.sleep(25)
+    print("Hey")
+    
     #############################################################
     ################  WORKERS LAUNCH ############################
     for dns in public_dns_list[2:]:
@@ -141,3 +147,20 @@ if __name__ == "__main__":
         command = utils_scripts.get_start_datanode_cmd(info)
         stdin, stdout, stderr = ssh.exec_command(command)
         ssh.close()
+
+    
+    #############################################################
+    ##############  MASTER LAUNCH PHASE 2 #######################
+    ssh.connect(public_dns_list[1], username="ubuntu", key_filename="key_pair_project.pem")
+
+    command = utils_scripts.get_start_sql_node_cmd()
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(180)
+    ssh.close()
+    ssh.connect(public_dns_list[1], username="ubuntu", key_filename="key_pair_project.pem")
+    command = utils_scripts.get_setup_users_cmd()
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(2)
+    command = utils_scripts.get_sakiladb_cmd()
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()

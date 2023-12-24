@@ -11,10 +11,7 @@ if __name__ == "__main__":
 
     response_vpcs = ec2_client.describe_vpcs()
     vpc_id = response_vpcs.get('Vpcs', [{}])[0].get('VpcId', '') # we use the default subnet
-    # It should already have multiple subnets listed, on different availability zones
-    # (at least it is the case for us with our student accounts)
     ec2_client_subnets = ec2_client.describe_subnets()['Subnets']
-
     key_pair_name = "key_pair_project" 
     
 

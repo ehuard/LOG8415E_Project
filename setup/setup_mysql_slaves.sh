@@ -26,6 +26,8 @@ sudo echo "export MYSQLC_HOME=/opt/mysqlcluster/home/mysqlc" > /etc/profile.d/my
 sudo echo 'export PATH=$MYSQLC_HOME/bin:$PATH' >> /etc/profile.d/mysqlc.sh
 # set environment variables for the current shell only (run the command again when opening a new shell)
 source /etc/profile.d/mysqlc.sh 
+sudo apt-get -y install libncurses5
+
 
 
 ############################################
