@@ -35,11 +35,3 @@ sudo mysql -u root -e "USE sakila;"
 
 # install sysbench
 sudo apt-get -y install sysbench
-
-
-
-# Commands to use to run the benchmlark (will be moved in another file)
-sudo sysbench oltp_read_only --table_size=100000 --threads=4 --tables=4 --mysql-db=sakila --mysql-user=root --db-driver=mysql prepare
-sudo sysbench oltp_read_only --table_size=100000 --threads=4 --tables=4 --mysql-db=sakila --mysql-user=root --db-driver=mysql run
-# dropping result tables
-sudo sysbench oltp_read_only --table_size=100000 --threads=4 --tables=4 --mysql-db=sakila --mysql-user=root --db-driver=mysql cleanup
