@@ -26,24 +26,33 @@ if __name__ == "__main__":
     # We want to delete everything previously created with the same name
     # so we can create them again without any conflict
     # Delete security groups (and associated instances) if they already exist
-    for group_name in ["project_sg"]:
+    for group_name in ["mysql_sg"]:
         deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)
 
     # https://stackoverflow.com/questions/43313528/data-nodes-cannot-connect-to-mysql-cluster
     # security_group = utils_instances.create_security_group(ec2_client, "project_sg", [22, 1186, 3306, 5000])
     #security_group = utils_instances.create_security_group_legacy(ec2_client, "project_sg", [22, 53, 58, 68, 1186, 2202, 2206, 3306, 5000, 8336])
-    security_group = utils_instances.create_security_group_legacy(ec2_client, "project_sg", [22, 1186, 3306, 2206])
+    security_group_mysql = utils_instances.create_security_group(ec2_client, "mysql_sg", [22, 1186, 3306, 2206])
 
-    instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
+    security_group_proxy = utils_instances.create_security_group(ec2_client, "proxy_sg", [22, 1186, 2206, 3306, 5000])
+    security_group_trusted_host = utils_instances.create_security_group(ec2_client, "trusted_host_sg", [22, 80, 5000])
+    security_group_gatekeeper = utils_instances.create_security_group(ec2_client, "gatekeeper_sg", [22, 80, 5000])
+
+
+
+    instance_id_standalone = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_mysql, ec2_client_subnets, key_pair_name, 1)
     info["standalone"] = {"id":instance_id_standalone}
-    instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 1)
+    instance_id_master = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_mysql, ec2_client_subnets, key_pair_name, 1)
     info["master"] = {"id":instance_id_master}
-    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group, ec2_client_subnets, key_pair_name, 3)
+    instances_id_workers = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_mysql, ec2_client_subnets, key_pair_name, 3)
     info["workers"] = [None,None,None]
     for idx,instances_id_work in enumerate(instances_id_workers):
         info["workers"][idx] = {"id":instances_id_work}
-    
-    all_instances_id = instance_id_standalone + instance_id_master + instances_id_workers
+    instance_id_proxy = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_proxy, ec2_client_subnets, key_pair_name, 1)
+    instance_id_trusted_host = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_trusted_host, ec2_client_subnets, key_pair_name, 1)
+    instance_id_gatekeeper = utils_instances.create_ec2_instances(ec2_ressource, ami_id, "t2.micro", security_group_gatekeeper, ec2_client_subnets, key_pair_name, 1)
+
+    all_instances_id = instance_id_standalone + instance_id_master + instances_id_workers + instance_id_proxy + instance_id_trusted_host + instance_id_gatekeeper 
     # We wait for the instances to be running
     utils_instances.wait_instances_to_run(ec2_client, all_instances_id)
     # We get the public dns name
@@ -56,7 +65,10 @@ if __name__ == "__main__":
         "workers":[{"id":instances_id_workers[0], "private_dns":private_dns_list[2], "public_dns":public_dns_list[2], "private_ip":private_ip_list[2]},
                    {"id":instances_id_workers[1], "private_dns":private_dns_list[3], "public_dns":public_dns_list[3], "private_ip":private_ip_list[3]},
                    {"id":instances_id_workers[2], "private_dns":private_dns_list[4], "public_dns":public_dns_list[4], "private_ip":private_ip_list[4]}
-                   ]
+                   ],
+        "proxy":{"id":instance_id_proxy[0], "private_dns":private_dns_list[5], "public_dns":public_dns_list[5], "private_ip":private_ip_list[5]},
+        "trusted_host":{"id":instance_id_trusted_host[0], "private_dns":private_dns_list[6], "public_dns":public_dns_list[6], "private_ip":private_ip_list[6]},
+        "gatekeeper":{"id":instance_id_gatekeeper[0], "private_dns":private_dns_list[7], "public_dns":public_dns_list[7], "private_ip":private_ip_list[7]}
     }
 
     print(public_dns_list)
@@ -141,7 +153,7 @@ if __name__ == "__main__":
     
     #############################################################
     ################  WORKERS LAUNCH ############################
-    for dns in public_dns_list[2:]:
+    for dns in public_dns_list[2:5]:
         ssh.connect(dns, username="ubuntu", key_filename="key_pair_project.pem")
 
         command = utils_scripts.get_start_datanode_cmd(info)

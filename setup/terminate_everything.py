@@ -17,5 +17,5 @@ if __name__ == "__main__":
 
     # We want to delete everything previously created with the names used (make sure to use the same names as is main.py)
     # Delete security groups (and associated instances) if they already exist
-    for group_name in ["project_sg"]:
+    for group_name in ["mysql_sg", "proxy_sg", "trusted_host_sg", "gatekeeper_sg"]:
         deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)

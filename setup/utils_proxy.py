@@ -125,6 +125,7 @@ def execute_query():
         
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)'''
+    return file_string
 
 
 def setup_instance_cmd(info):
@@ -139,3 +140,16 @@ def setup_instance_cmd(info):
     cmd += f'''echo {py_file} > ./flask_app.py \n \
         python3 flask_app.py'''
     return cmd
+
+
+
+# import json 
+
+# with open("data.json", 'r') as var_file: 
+#             data = json.load(var_file)           
+#             instance_standalone = data["standalone"]
+#             instance_master = data["master"]
+
+# print(data)
+# a=get_flaskpy_file(data)
+# print(a)

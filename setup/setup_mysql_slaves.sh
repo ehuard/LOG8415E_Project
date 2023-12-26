@@ -6,7 +6,7 @@ sudo apt-get update
 
 # if needed, stop mysql before and uninstall
 #sudo service mysqld stop
-sudo apt-get remove mysql-server mysql mysql-devel
+#sudo apt-get remove mysql-server mysql mysql-devel
 
 sudo mkdir -p /opt/mysqlcluster/home
 cd /opt/mysqlcluster/home

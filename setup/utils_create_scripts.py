@@ -57,6 +57,7 @@ def get_firewall_cmd(info):
         sudo ufw allow from {info['master']['private_ip']} \n"
     return cmd
 
+
 def get_start_datanode_cmd(info):
     """
     Create the command used to start the datanode.
