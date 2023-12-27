@@ -19,7 +19,7 @@ def get_master_config(info):
     nb_datanodes = len(info["workers"])
     script += f"[ndbd default] \n\
         noofreplicas={nb_datanodes} \n\
-        ServerPort=2206 \n\
+        ServerPort=3306 \n\
         datadir=/opt/mysqlcluster/deploy/ndb_data \n\n"
     
     for i in range(nb_datanodes):
@@ -70,7 +70,11 @@ def get_start_datanode_cmd(info):
     Returns:
     - cmd: the content of the command(in a string format).
     """
-    cmd = f"source /etc/profile.d/mysqlc.sh \n\
+    cmd = f''' echo "[mysqld]
+bind-address=0.0.0.0            
+[mysql_cluster]
+ndb-connectstring={info['master']['private_dns']}" > /etc/my.cnf \n'''
+    cmd += f"source /etc/profile.d/mysqlc.sh \n\
     echo \"\nStart datanode!\n\" >> std.txt \n \
     echo \"\nStart datanode!\n\" >> err.txt \n \
     ndbd -c {info['master']['private_dns']} 1>>std.txt 2>>err.txt"

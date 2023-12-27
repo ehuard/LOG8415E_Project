@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 
 # Connect to the MySQL cluster
-def get_mysql_connection(host, user="root", password="root", database="sakila"):
+def get_mysql_connection(host, user='proxy', password='pwd', database='sakila'):
     return mysql.connector.connect(
         host=host,
         user=user,
@@ -22,7 +22,7 @@ def get_mysql_connection(host, user="root", password="root", database="sakila"):
 def direct_hit(query):
     try:
         # Connect to the master node
-        connection = get_mysql_connection({info["master"]["private_ip"]})
+        connection = get_mysql_connection('{info['master']['private_ip']}')
         # Execute the query
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query)
@@ -31,23 +31,24 @@ def direct_hit(query):
         # ...
         cursor.close()
         res = dict()
-        res["result"]=result
+        res['result']=result
         return jsonify(res)
     except Exception as e:
         err = dict()
-        err["error"] = str(e)
+        err['error'] = str(e)
         return jsonify(err)
     finally:
-        if connection.is_connected():
+        if 'connection' in locals() and connection.is_connected():
             connection.close()
 
    
 def random_mode(query):
     try:
         # Connect to a random worker node
-        workers = {info["workers"]} 
+        workers = {info['workers']} 
         worker = random.choice(workers)
-        connection =  get_mysql_connection(worker["private_ip"])
+        print("Connection to random worker ", worker)
+        connection =  get_mysql_connection(worker['private_ip'])
 
         # Execute the query
         cursor = connection.cursor(dictionary=True)
@@ -57,22 +58,22 @@ def random_mode(query):
         # ...
         cursor.close()
         res = dict()
-        res["result"]=result
+        res['result']=result
         return jsonify(res)
     except Exception as e:
         err = dict()
-        err["error"] = str(e)
+        err['error'] = str(e)
         return jsonify(err)
     finally:
-        if connection.is_connected():
+        if 'connection' in locals() and connection.is_connected():
             connection.close()
             
 def customized_mode(query):
     lowest_ping = float('inf')
     best_worker = None
 
-    for worker in info["workers"]:
-        private_ip = worker["private_ip"]
+    for worker in info['workers']:
+        private_ip = worker['private_ip']
         current_ping = ping(private_ip)
 
         if current_ping is not None and current_ping < lowest_ping:
@@ -80,7 +81,8 @@ def customized_mode(query):
             best_worker = worker
     
     try:
-        connection =  get_mysql_connection(best_worker["private_ip"])
+        print("Connection to worker ",best_worker," with ping=",lowest_ping)
+        connection =  get_mysql_connection(best_worker['private_ip'])
         # Execute the query
         cursor = connection.cursor(dictionary=True)
         cursor.execute(query)
@@ -89,14 +91,14 @@ def customized_mode(query):
         # ...
         cursor.close()
         res = dict()
-        res["result"]=result
+        res['result']=result
         return jsonify(res)
     except Exception as e:
         err = dict()
-        err["error"] = str(e)
+        err['error'] = str(e)
         return jsonify(err)
     finally:
-        if connection.is_connected():
+        if 'connection' in locals() and connection.is_connected():
             connection.close()
 
 
@@ -106,25 +108,25 @@ def hello():
     return 'Hello, World!'
 
     
-@app.route("/query", methods=["POST"])
+@app.route('/query', methods=['POST'])
 def execute_query():
     data = request.get_json()
-    mode = data.get("mode")
-    query = data.get("query")
+    mode = data.get('mode')
+    query = data.get('query')
 
-    if mode == "direct-hit":
+    if mode == 'direct-hit':
         # Send query to the master node
         return direct_hit(query)
-    elif mode == "random":
+    elif mode == 'random':
         # Send query to a random worker node
         return random_mode(query)
-    elif mode == "customized":
+    elif mode == 'customized':
         # Measure ping and send query to the worker with the lowest ping
         return customized_mode(query)
 
         
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)'''
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)'''
     return file_string
 
 
@@ -132,24 +134,30 @@ def setup_instance_cmd(info):
     """
     Returns the commands used to setup the proxy instance and launch the flask application
     """
-    cmd = "sudo apt-get -y install python3-pip \n \
-    pip3 install Flask \n \
-    pip3 install ping3 \n \
-    pip install mysql-connector-python \n"
+    cmd = "pip install flask \n \
+pip install ping3 \n \
+pip install mysql-connector-python \n"
     py_file = get_flaskpy_file(info)
-    cmd += f'''echo {py_file} > ./flask_app.py \n \
-        python3 flask_app.py'''
+    cmd += f'''echo "{py_file}" > ./flask_app.py \n \
+python3 flask_app.py'''
     return cmd
 
 
+def create_proxy_user_cmd(info):
+    """
+    Dynamically creates the command used on the master node to create a new user, proxy on a distant machine
+    """      
+    cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" "\n \
+sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"'''
+    return cmd
 
-# import json 
 
-# with open("data.json", 'r') as var_file: 
-#             data = json.load(var_file)           
-#             instance_standalone = data["standalone"]
-#             instance_master = data["master"]
+import json 
 
-# print(data)
-# a=get_flaskpy_file(data)
-# print(a)
+with open("data.json", 'r') as var_file: 
+            data = json.load(var_file)           
+            instance_standalone = data["standalone"]
+            instance_master = data["master"]
+
+a=setup_instance_cmd(data)
+print(a)
