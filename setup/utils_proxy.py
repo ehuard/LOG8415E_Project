@@ -47,7 +47,7 @@ def random_mode(query):
         # Connect to a random worker node
         workers = {info['workers']} 
         worker = random.choice(workers)
-        print("Connection to random worker ", worker)
+        print('Connection to random worker ', worker)
         connection =  get_mysql_connection(worker['private_ip'])
 
         # Execute the query
@@ -81,7 +81,7 @@ def customized_mode(query):
             best_worker = worker
     
     try:
-        print("Connection to worker ",best_worker," with ping=",lowest_ping)
+        print('Connection to worker ',best_worker,' with ping=',lowest_ping)
         connection =  get_mysql_connection(best_worker['private_ip'])
         # Execute the query
         cursor = connection.cursor(dictionary=True)
@@ -147,17 +147,17 @@ def create_proxy_user_cmd(info):
     """
     Dynamically creates the command used on the master node to create a new user, proxy on a distant machine
     """      
-    cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" "\n \
+    cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
 sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"'''
     return cmd
 
 
-import json 
+# import json 
 
-with open("data.json", 'r') as var_file: 
-            data = json.load(var_file)           
-            instance_standalone = data["standalone"]
-            instance_master = data["master"]
+# with open("data.json", 'r') as var_file: 
+#             data = json.load(var_file)           
+#             instance_standalone = data["standalone"]
+#             instance_master = data["master"]
 
-a=setup_instance_cmd(data)
-print(a)
+# a=setup_instance_cmd(data)
+# print(a)

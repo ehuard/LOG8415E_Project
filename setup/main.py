@@ -105,6 +105,9 @@ if __name__ == "__main__":
     time.sleep(10)
     stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
     time.sleep(10)
+    command = "pip install flask ping3 mysql-connector-python"
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
+    time.sleep(10)
     command = utils_proxy.setup_instance_cmd(info)
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
