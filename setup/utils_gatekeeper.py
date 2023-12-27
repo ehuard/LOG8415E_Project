@@ -11,7 +11,7 @@ import requests
 
 app = Flask(__name__)
 
-dest_url = 'http://{info['proxy']['public_dns']}:5000/query'
+dest_url = 'http://{info['trusted_host']['public_dns']}:5000'
 
 # Route for the 'read' page
 @app.route('/read', methods=['GET', 'POST'])
@@ -59,3 +59,34 @@ def write():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)'''
     return flask_file
+
+
+def get_trusted_host_app(info):
+    """
+    """
+    flask_file=f'''from flask import Flask, request, jsonify 
+import requests
+from utils import *
+
+dest_url = 'http://{info['proxy']['public_dns']}:5000/query'
+
+app = Flask(__name__)
+
+@app.route('/', methods=['POST'])
+def sanitize():
+    validity, res = sanitize_request(request)
+    if validity:
+        response = requests.post(dest_url, json=request.get_json())
+        if response.status_code == 200:
+            result = response.json()
+            if 'result' in result: result=result['result']
+        else:
+            result= 'Error:' + response.text
+    else:
+        result= 'Error during sanitizing:' + res
+    return jsonify(result)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)'''
+    return flask_file    

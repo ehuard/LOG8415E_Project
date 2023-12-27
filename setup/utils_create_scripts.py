@@ -46,17 +46,6 @@ def get_mycnf_cmd(info):
         #ndb-connectstring={info['master']['private_dns']}  # location of management server\" > /opt/mysqlcluster/deploy/conf/my.cnf"
     return cmd
 
-def get_firewall_cmd(info):
-    """
-    """
-    cmd = f"sudo ufw enable\n\
-        sudo ufw allow \"OpenSSH\" \n\
-        sudo ufw allow from {info['workers'][0]['private_ip']} \n\
-        sudo ufw allow from {info['workers'][1]['private_ip']} \n\
-        sudo ufw allow from {info['workers'][2]['private_ip']} \n\
-        sudo ufw allow from {info['master']['private_ip']} \n"
-    return cmd
-
 
 def get_start_datanode_cmd(info):
     """
@@ -132,3 +121,40 @@ def get_sakiladb_cmd():
         SOURCE sakila-db/sakila-data.sql; \n\
         USE sakila;\" 1>>std.txt 2>>err.txt"
     return cmd
+
+
+def get_cluster_firewall_cmd(info):
+    """
+    """
+    cmd = f"sudo ufw enable\n\
+        sudo ufw allow \"OpenSSH\" \n\
+        sudo ufw allow from {info['workers'][0]['private_ip']} \n\
+        sudo ufw allow from {info['workers'][1]['private_ip']} \n\
+        sudo ufw allow from {info['workers'][2]['private_ip']} \n\
+        sudo ufw allow from {info['master']['private_ip']} \n\
+        sudo ufw allow from {info['proxy']['private_ip']}"
+    return cmd
+
+def get_proxy_firewall_cmd(info):
+    """
+    """
+    cmd = f"sudo ufw enable\n\
+        sudo ufw allow \"OpenSSH\" \n\
+        sudo ufw allow from {info['workers'][0]['private_ip']} \n\
+        sudo ufw allow from {info['workers'][1]['private_ip']} \n\
+        sudo ufw allow from {info['workers'][2]['private_ip']} \n\
+        sudo ufw allow from {info['master']['private_ip']} \n\
+        sudo ufw allow from {info['proxy']['private_ip']}\n\
+        sudo ufw allow from {info['trusted_host']['private_ip']}"
+    return cmd
+
+def get_trusted_firewall_cmd(info):
+    """
+    """
+    cmd = f"sudo ufw enable\n\
+        sudo ufw allow \"OpenSSH\" \n\
+        sudo ufw allow from {info['proxy']['private_ip']}\n\
+        sudo ufw allow from {info['trusted_host']['private_ip']}\n\
+        sudo ufw allow from {info['gatekeeper']['private_ip']}"
+    return cmd
+

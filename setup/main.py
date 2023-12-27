@@ -35,9 +35,9 @@ if __name__ == "__main__":
             deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)
 
     
-        security_group_mysql = utils_instances.create_security_group(ec2_client, "mysql_sg", [22, 1186, 3306, 2206])
+        security_group_mysql = utils_instances.create_security_group(ec2_client, "mysql_sg", [22, 1186, 3306])
         # Remember to remove useless ports in the security group for proxy once the gatekeeper is fully implemented
-        security_group_proxy = utils_instances.create_security_group(ec2_client, "proxy_sg", [22, 80, 1186, 2206, 3306, 5000])
+        security_group_proxy = utils_instances.create_security_group(ec2_client, "proxy_sg", [22, 80, 1186, 3306, 5000])
         security_group_trusted_host = utils_instances.create_security_group(ec2_client, "trusted_host_sg", [22, 80, 5000])
         security_group_gatekeeper = utils_instances.create_security_group(ec2_client, "gatekeeper_sg", [22, 80, 5000])
 
@@ -85,8 +85,9 @@ if __name__ == "__main__":
         print(public_dns_list)
         print(info)
         exit()
-    public_dns_list = ['ec2-44-211-238-6.compute-1.amazonaws.com', 'ec2-44-214-43-110.compute-1.amazonaws.com', 'ec2-3-231-222-18.compute-1.amazonaws.com', 'ec2-3-238-121-139.compute-1.amazonaws.com', 'ec2-34-229-254-222.compute-1.amazonaws.com', 'ec2-3-231-56-192.compute-1.amazonaws.com', 'ec2-34-205-9-76.compute-1.amazonaws.com', 'ec2-34-236-245-22.compute-1.amazonaws.com']
-    info = {'standalone': {'id': 'i-0edef124611d77aba', 'private_dns': 'ip-172-31-12-18.ec2.internal', 'public_dns': 'ec2-44-211-238-6.compute-1.amazonaws.com', 'private_ip': '172.31.12.18'}, 'master': {'id': 'i-048aa5c3ae5591a80', 'private_dns': 'ip-172-31-14-62.ec2.internal', 'public_dns': 'ec2-44-214-43-110.compute-1.amazonaws.com', 'private_ip': '172.31.14.62'}, 'workers': [{'id': 'i-00d5d38adcf48ffde', 'private_dns': 'ip-172-31-12-185.ec2.internal', 'public_dns': 'ec2-3-231-222-18.compute-1.amazonaws.com', 'private_ip': '172.31.12.185'}, {'id': 'i-00ecb12650d698233', 'private_dns': 'ip-172-31-69-10.ec2.internal', 'public_dns': 'ec2-3-238-121-139.compute-1.amazonaws.com', 'private_ip': '172.31.69.10'}, {'id': 'i-03f4ef3a545795b6c', 'private_dns': 'ip-172-31-49-150.ec2.internal', 'public_dns': 'ec2-34-229-254-222.compute-1.amazonaws.com', 'private_ip': '172.31.49.150'}], 'proxy': {'id': 'i-0586cfc74baa63a51', 'private_dns': 'ip-172-31-8-107.ec2.internal', 'public_dns': 'ec2-3-231-56-192.compute-1.amazonaws.com', 'private_ip': '172.31.8.107'}, 'trusted_host': {'id': 'i-0e217481084067d42', 'private_dns': 'ip-172-31-5-17.ec2.internal', 'public_dns': 'ec2-34-205-9-76.compute-1.amazonaws.com', 'private_ip': '172.31.5.17'}, 'gatekeeper': {'id': 'i-08866506ef4878ef8', 'private_dns': 'ip-172-31-13-139.ec2.internal', 'public_dns': 'ec2-34-236-245-22.compute-1.amazonaws.com', 'private_ip': '172.31.13.139'}}
+    public_dns_list = ['ec2-54-236-31-31.compute-1.amazonaws.com', 'ec2-35-153-156-168.compute-1.amazonaws.com', 'ec2-44-204-103-71.compute-1.amazonaws.com', 'ec2-3-239-7-26.compute-1.amazonaws.com', 'ec2-54-197-124-171.compute-1.amazonaws.com', 'ec2-3-235-231-25.compute-1.amazonaws.com', 'ec2-44-200-62-211.compute-1.amazonaws.com', 'ec2-3-235-137-150.compute-1.amazonaws.com']
+    info = {'standalone': {'id': 'i-0c8456840af8e14a5', 'private_dns': 'ip-172-31-15-44.ec2.internal', 'public_dns': 'ec2-54-236-31-31.compute-1.amazonaws.com', 'private_ip': '172.31.15.44'}, 'master': {'id': 'i-0d72c96ac83a86b85', 'private_dns': 'ip-172-31-4-166.ec2.internal', 'public_dns': 'ec2-35-153-156-168.compute-1.amazonaws.com', 'private_ip': '172.31.4.166'}, 'workers': [{'id': 'i-00e9d0ba2a9203f40', 'private_dns': 'ip-172-31-6-233.ec2.internal', 'public_dns': 'ec2-44-204-103-71.compute-1.amazonaws.com', 'private_ip': '172.31.6.233'}, {'id': 'i-051811b455383545c', 'private_dns': 'ip-172-31-70-167.ec2.internal', 'public_dns': 'ec2-3-239-7-26.compute-1.amazonaws.com', 'private_ip': '172.31.70.167'}, {'id': 'i-011544c6b93a74b66', 'private_dns': 'ip-172-31-63-177.ec2.internal', 'public_dns': 'ec2-54-197-124-171.compute-1.amazonaws.com', 'private_ip': '172.31.63.177'}], 'proxy': {'id': 'i-01175843329c9429d', 'private_dns': 'ip-172-31-4-247.ec2.internal', 'public_dns': 'ec2-3-235-231-25.compute-1.amazonaws.com', 'private_ip': '172.31.4.247'}, 'trusted_host': {'id': 'i-09191b4c5ecad52a3', 'private_dns': 'ip-172-31-10-222.ec2.internal', 'public_dns': 'ec2-44-200-62-211.compute-1.amazonaws.com', 'private_ip': '172.31.10.222'}, 'gatekeeper': {'id': 'i-0a1f14b5d7ff6c270', 'private_dns': 'ip-172-31-5-177.ec2.internal', 'public_dns': 'ec2-3-235-137-150.compute-1.amazonaws.com', 'private_ip': '172.31.5.177'}}
+    
     #############################################################
     ################  STANDALONE INIT ###########################
     ssh = paramiko.SSHClient()
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     ssh.close()
 
 
-#############################################################
+    #############################################################
     #################  PROXY INIT ###############################
     ssh.connect(public_dns_list[5], username="ubuntu", key_filename="key_pair_project3.pem")
     stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     ssh.close()
 
     #############################################################
-    #################  WEB FACING INIT ###############################
+    #################  WEB FACING INIT ##########################
     ssh.connect(public_dns_list[7], username="ubuntu", key_filename="key_pair_project3.pem")
     stdin, stdout, stderr = ssh.exec_command("mkdir templates")
     with SCPClient(ssh.get_transport()) as scp:
@@ -139,7 +140,29 @@ if __name__ == "__main__":
     f = utils_gatekeeper.get_extern_flask_app(info)
     command = f'''echo \"{f}\" >flask_app.py'''
     stdin, stdout, stderr = ssh.exec_command(command)
+    # Since we are running the app on port 80, we need to run the next command with sudo
+    stdin, stdout, stderr = ssh.exec_command("sudo python3 flask_app.py")
     ssh.close()
+
+    #############################################################
+    #################  TRUSTED HOST INIT ########################
+    ssh.connect(public_dns_list[6], username="ubuntu", key_filename="key_pair_project3.pem")
+    with SCPClient(ssh.get_transport()) as scp:
+        scp.put("setup/utils_sanitize.py", remote_path='utils.py')
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
+    time.sleep(10)
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
+    time.sleep(10)
+    command = 'pip3 install flask requests sqlfluff\n\
+        export PATH="$HOME/.local/bin:$PATH"'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(10)
+    f = utils_gatekeeper.get_trusted_host_app(info)
+    command = f'''echo \"{f}\" >flask_app.py'''
+    stdin, stdout, stderr = ssh.exec_command(command)
+    stdin, stdout, stderr = ssh.exec_command("python3 flask_app.py")
+    ssh.close()
+
 
     #############################################################
     ################  MASTER INIT ###############################

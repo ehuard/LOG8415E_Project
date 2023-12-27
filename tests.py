@@ -8,13 +8,13 @@
 import requests
 
 # Flask proxy server URL
-proxy_url = "http://ec2-3-231-56-192.compute-1.amazonaws.com:5000/query" 
+proxy_url = "http://ec2-3-238-187-45.compute-1.amazonaws.com:5000/query" 
 
 # SQL query and mode information
-#query = "SELECT * FROM actor ORDER BY 'actor_id';"
-query = "INSERT INTO actor VALUES(201, 'Jean', 'Reno', NOW());"
-mode = "write"
-#mode = 'direct-hit'
+query = "SELECT * FROM actor LIMIT 5;"
+#query = "INSERT INTO actor VALUES(201, 'Jean', 'Reno', NOW());"
+#mode = "write"
+mode = 'direct-hit'
 
 # JSON payload
 payload = {

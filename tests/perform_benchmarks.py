@@ -33,23 +33,23 @@ if __name__ == "__main__":
     ssh.load_system_host_keys()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
     command = get_benckmark_cmd(cluster=False)
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
-    ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
     command = get_benckmark_cmd(cluster=True)
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
     
-    time.sleep(65)
-    ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    time.sleep(80)
+    ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
     command = get_benckmark_cmd(cluster=False, mode="oltp_read_only")
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
-    ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
     command = get_benckmark_cmd(cluster=True, mode="oltp_read_only")
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
@@ -59,13 +59,13 @@ if __name__ == "__main__":
     for file_name in files_to_retrieve:
         remote_file_path = file_name
         local_file_path = f"tests/benchmark_results/standalone_{file_name}"
-        ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+        ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
         with SCPClient(ssh.get_transport()) as scp:
             scp.get(remote_file_path, local_path=local_file_path)
         ssh.close()
 
         local_file_path = f"tests/benchmark_results/cluster_{file_name}"
-        ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+        ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project3.pem")
         with SCPClient(ssh.get_transport()) as scp:
             scp.get(remote_file_path, local_path=local_file_path)
         ssh.close()
