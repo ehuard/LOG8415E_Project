@@ -33,6 +33,15 @@ def get_master_config(info):
 
 def get_mycnf_cmd(info):
     """
+    Gives the command used to create of the my.cnf file to put on master node.
+    The content has to be created dynamically to have the right private dns.
+
+    Parameters:
+    - info : A dictionnary containing all the information necessary on our instances.
+        Look at main.py or data.json to see its content 
+
+    Returns:
+    - script: the content of the config.ini file (in a string format).
     """
     cmd = f"echo \"[mysqld] \
         ndbcluster \n\
@@ -86,6 +95,7 @@ def get_start_master_cmd():
 
 def get_start_sql_node_cmd():
     """
+    Creates the command used to start the SQL nodes, to be launched from the master node
     """
     cmd = f"source /etc/profile.d/mysqlc.sh \n\
         echo \"\nStart SQL node!\n\" >> std.txt \n \
@@ -96,7 +106,7 @@ def get_start_sql_node_cmd():
 
 def get_setup_users_cmd():
     """
-    Create the command used to start setup the users.
+    Create the command used to setup the users.
 
     Returns:
     - cmd: the content of the command(in a string format).
@@ -114,7 +124,7 @@ def get_setup_users_cmd():
 
 def get_sakiladb_cmd():
     """
-    
+    Creates the command used to start using sakila db
     """
     cmd = f"sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -proot -e \" \n \
         SOURCE sakila-db/sakila-schema.sql; \n\
@@ -125,6 +135,10 @@ def get_sakiladb_cmd():
 
 def get_cluster_firewall_cmd(info):
     """
+    Gives the command to setup the firewall on the cluster nodes (master and worker)
+    Those nodes should accept SSH connection from anywhere (so I can connect from my laptop where I store the key)
+    and accept all traffic on open ports inside the cluster itself and with the proxy.
+    Remember that we have already blocked most of the possible communications with the security groups
     """
     cmd = f"sudo ufw enable\n\
         sudo ufw allow \"OpenSSH\" \n\
@@ -137,6 +151,11 @@ def get_cluster_firewall_cmd(info):
 
 def get_proxy_firewall_cmd(info):
     """
+    Gives the command to setup the firewall on the proxy instance
+    This node should accept SSH connection from anywhere (so I can connect from my laptop where I store the key)
+    and accept all traffic on open ports with the cluster nodes (send requests and read result) and with the trusted host
+    (receive request from the trusted host and send back the result).
+    Remember that we have already blocked most of the possible communications with the security groups
     """
     cmd = f"sudo ufw enable\n\
         sudo ufw allow \"OpenSSH\" \n\
@@ -150,6 +169,10 @@ def get_proxy_firewall_cmd(info):
 
 def get_trusted_firewall_cmd(info):
     """
+    Gives the command to setup the firewall on the trusted host of the gatekeeper
+    This node should accept SSH connection from anywhere (so I can connect from my laptop where I store the key)
+    and accept all traffic on open ports with the internet-facing instance of the gatekeeper and with the proxy
+    Remember that we have already blocked most of the possible communications with the security groups
     """
     cmd = f"sudo ufw enable\n\
         sudo ufw allow \"OpenSSH\" \n\

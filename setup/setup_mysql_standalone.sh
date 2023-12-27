@@ -23,7 +23,7 @@ rm sakila-db.tar.gz
 # quit # back to the shell
 
 
-# Create Sakila database
+# Create Sakila database (it should already exist!)
 sudo mysql -u root -e "CREATE DATABASE IF NOT EXISTS sakila;"
 # Load Sakila schema
 sudo mysql -u root -e "SOURCE sakila-db/sakila-schema.sql;"

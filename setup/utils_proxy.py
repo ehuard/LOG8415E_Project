@@ -1,5 +1,3 @@
-
-# Most of the things here habe been given by chatGPT
 def get_flaskpy_file(info):
     """
     Dynamically creates the content of the python file used for the flask application in the proxy

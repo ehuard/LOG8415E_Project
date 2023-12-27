@@ -16,7 +16,6 @@ if __name__ == "__main__":
     ec2_client_subnets = ec2_client.describe_subnets()['Subnets']
     key_pair_name = "key_pair_project" 
     
-
     # We want to delete everything previously created with the names used (make sure to use the same names as is main.py)
     # Delete security groups (and associated instances) if they already exist
     for group_name in ["mysql_sg", "proxy_sg", "trusted_host_sg", "gatekeeper_sg"]:

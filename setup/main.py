@@ -106,69 +106,6 @@ if __name__ == "__main__":
 
 
     #############################################################
-    #################  PROXY INIT ###############################
-    ssh.connect(public_dns_list[5], username="ubuntu", key_filename="key_pair_project3.pem")
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
-    time.sleep(10)
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
-    time.sleep(10)
-    command = 'pip3 install flask ping3 mysql-connector-python\n\
-        export PATH="$HOME/.local/bin:$PATH"'
-    stdin, stdout, stderr = ssh.exec_command(command)
-    time.sleep(10)
-    command = utils_proxy.setup_instance_cmd(info)
-    stdin, stdout, stderr = ssh.exec_command(command)
-    command = utils_scripts.get_proxy_firewall_cmd(info)
-    stdin, stdout, stderr = ssh.exec_command(command)
-    ssh.close()
-
-    #############################################################
-    #################  WEB FACING INIT ##########################
-    ssh.connect(public_dns_list[7], username="ubuntu", key_filename="key_pair_project3.pem")
-    stdin, stdout, stderr = ssh.exec_command("mkdir templates")
-    with SCPClient(ssh.get_transport()) as scp:
-        scp.put("templates/read.html", remote_path='templates/read.html')
-        scp.put("templates/write.html", remote_path='templates/write.html')
-        scp.put("templates/result.html", remote_path='templates/result.html')
-
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
-    time.sleep(10)
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
-    time.sleep(10)
-    command = 'sudo pip3 install flask requests\n\
-        export PATH="$HOME/.local/bin:$PATH"'
-    stdin, stdout, stderr = ssh.exec_command(command)
-    time.sleep(10)
-    f = utils_gatekeeper.get_extern_flask_app(info)
-    command = f'''echo \"{f}\" >flask_app.py'''
-    stdin, stdout, stderr = ssh.exec_command(command)
-    # Since we are running the app on port 80, we need to run the next command with sudo
-    stdin, stdout, stderr = ssh.exec_command("sudo python3 flask_app.py")
-    ssh.close()
-
-    #############################################################
-    #################  TRUSTED HOST INIT ########################
-    ssh.connect(public_dns_list[6], username="ubuntu", key_filename="key_pair_project3.pem")
-    with SCPClient(ssh.get_transport()) as scp:
-        scp.put("setup/utils_sanitize.py", remote_path='utils.py')
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
-    time.sleep(10)
-    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
-    time.sleep(10)
-    command = 'pip3 install flask requests sqlfluff\n\
-        export PATH="$HOME/.local/bin:$PATH"'
-    stdin, stdout, stderr = ssh.exec_command(command)
-    time.sleep(10)
-    f = utils_gatekeeper.get_trusted_host_app(info)
-    command = f'''echo \"{f}\" >flask_app.py'''
-    stdin, stdout, stderr = ssh.exec_command(command)
-    stdin, stdout, stderr = ssh.exec_command("python3 flask_app.py")
-    command = utils_scripts.get_trusted_firewall_cmd(info)
-    stdin, stdout, stderr = ssh.exec_command(command)
-    ssh.close()
-
-
-    #############################################################
     ################  MASTER INIT ###############################
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -259,7 +196,71 @@ if __name__ == "__main__":
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
-    
+
+    #############################################################
+    #################  PROXY INIT ###############################
+    ssh.connect(public_dns_list[5], username="ubuntu", key_filename="key_pair_project3.pem")
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
+    time.sleep(10)
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
+    time.sleep(10)
+    command = 'pip3 install flask ping3 mysql-connector-python\n\
+        export PATH="$HOME/.local/bin:$PATH"'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(10)
+    command = utils_proxy.setup_instance_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    command = utils_scripts.get_proxy_firewall_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()
 
 
+    #############################################################
+    #################  TRUSTED HOST INIT ########################
+    ssh.connect(public_dns_list[6], username="ubuntu", key_filename="key_pair_project3.pem")
+    with SCPClient(ssh.get_transport()) as scp:
+        scp.put("setup/utils_sanitize.py", remote_path='utils.py')
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
+    time.sleep(10)
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
+    time.sleep(10)
+    command = 'pip3 install flask requests sqlfluff\n\
+        export PATH="$HOME/.local/bin:$PATH"'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(10)
+    f = utils_gatekeeper.get_trusted_host_app(info)
+    command = f'''echo \"{f}\" >flask_app.py'''
+    stdin, stdout, stderr = ssh.exec_command(command)
+    stdin, stdout, stderr = ssh.exec_command("python3 flask_app.py")
+    command = utils_scripts.get_trusted_firewall_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()
+
+
+    #############################################################
+    #################  WEB FACING INIT ##########################
+    ssh.connect(public_dns_list[7], username="ubuntu", key_filename="key_pair_project3.pem")
+    stdin, stdout, stderr = ssh.exec_command("mkdir templates")
+    with SCPClient(ssh.get_transport()) as scp:
+        scp.put("templates/read.html", remote_path='templates/read.html')
+        scp.put("templates/write.html", remote_path='templates/write.html')
+        scp.put("templates/result.html", remote_path='templates/result.html')
+
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get update")
+    time.sleep(10)
+    stdin, stdout, stderr = ssh.exec_command("sudo apt-get -y install python3-pip")
+    time.sleep(10)
+    command = 'sudo pip3 install flask requests\n\
+        export PATH="$HOME/.local/bin:$PATH"'
+    stdin, stdout, stderr = ssh.exec_command(command)
+    time.sleep(10)
+    f = utils_gatekeeper.get_extern_flask_app(info)
+    command = f'''echo \"{f}\" >flask_app.py'''
+    stdin, stdout, stderr = ssh.exec_command(command)
+    # Since we are running the app on port 80, we need to run the next command with sudo
+    stdin, stdout, stderr = ssh.exec_command("sudo python3 flask_app.py")
+    ssh.close()
     
+    print("\n\n#####\nInitialization Complete!")
+    print("Go to http://",info["gatekeeper"]["public_dns"],"/read to submit a write request,")
+    print("or to http://",info["gatekeeper"]["public_dns"],"/write to submit a write request.\n")
