@@ -1,6 +1,12 @@
 
 # Most of the things here habe been given by chatGPT
 def get_flaskpy_file(info):
+    """
+    Dynamically creates the content of the python file used for the flask application in the proxy
+
+    Parameters:
+    - info: Dictionnary containing all the information about our instances (see data.json).
+    """
 
     file_string = f'''from flask import Flask, request, jsonify 
 import mysql.connector
@@ -178,5 +184,5 @@ def create_proxy_user_cmd(info):
     Dynamically creates the command used on the master node to create a new user, proxy on a distant machine
     """      
     cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
-sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"1>oy.txt 2>hmm.txt'''
+sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"'''
     return cmd

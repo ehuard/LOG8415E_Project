@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # We want to delete everything previously created with the same name
     # so we can create them again without any conflict
     # Delete security groups (and associated instances) if they already exist
-    if 0==1:
+    if 1==1:
         for group_name in ["mysql_sg", "proxy_sg", "trusted_host_sg", "gatekeeper_sg"]:
             deleted = utils_instances.delete_security_group_by_name(ec2_client, group_name)
 
@@ -84,9 +84,9 @@ if __name__ == "__main__":
         print("\n\n######\n\n")
         print(public_dns_list)
         print(info)
-        exit()
-    public_dns_list = ['ec2-54-236-31-31.compute-1.amazonaws.com', 'ec2-35-153-156-168.compute-1.amazonaws.com', 'ec2-44-204-103-71.compute-1.amazonaws.com', 'ec2-3-239-7-26.compute-1.amazonaws.com', 'ec2-54-197-124-171.compute-1.amazonaws.com', 'ec2-3-235-231-25.compute-1.amazonaws.com', 'ec2-44-200-62-211.compute-1.amazonaws.com', 'ec2-3-235-137-150.compute-1.amazonaws.com']
-    info = {'standalone': {'id': 'i-0c8456840af8e14a5', 'private_dns': 'ip-172-31-15-44.ec2.internal', 'public_dns': 'ec2-54-236-31-31.compute-1.amazonaws.com', 'private_ip': '172.31.15.44'}, 'master': {'id': 'i-0d72c96ac83a86b85', 'private_dns': 'ip-172-31-4-166.ec2.internal', 'public_dns': 'ec2-35-153-156-168.compute-1.amazonaws.com', 'private_ip': '172.31.4.166'}, 'workers': [{'id': 'i-00e9d0ba2a9203f40', 'private_dns': 'ip-172-31-6-233.ec2.internal', 'public_dns': 'ec2-44-204-103-71.compute-1.amazonaws.com', 'private_ip': '172.31.6.233'}, {'id': 'i-051811b455383545c', 'private_dns': 'ip-172-31-70-167.ec2.internal', 'public_dns': 'ec2-3-239-7-26.compute-1.amazonaws.com', 'private_ip': '172.31.70.167'}, {'id': 'i-011544c6b93a74b66', 'private_dns': 'ip-172-31-63-177.ec2.internal', 'public_dns': 'ec2-54-197-124-171.compute-1.amazonaws.com', 'private_ip': '172.31.63.177'}], 'proxy': {'id': 'i-01175843329c9429d', 'private_dns': 'ip-172-31-4-247.ec2.internal', 'public_dns': 'ec2-3-235-231-25.compute-1.amazonaws.com', 'private_ip': '172.31.4.247'}, 'trusted_host': {'id': 'i-09191b4c5ecad52a3', 'private_dns': 'ip-172-31-10-222.ec2.internal', 'public_dns': 'ec2-44-200-62-211.compute-1.amazonaws.com', 'private_ip': '172.31.10.222'}, 'gatekeeper': {'id': 'i-0a1f14b5d7ff6c270', 'private_dns': 'ip-172-31-5-177.ec2.internal', 'public_dns': 'ec2-3-235-137-150.compute-1.amazonaws.com', 'private_ip': '172.31.5.177'}}
+        #exit()
+    #public_dns_list = ['ec2-54-236-31-31.compute-1.amazonaws.com', 'ec2-35-153-156-168.compute-1.amazonaws.com', 'ec2-44-204-103-71.compute-1.amazonaws.com', 'ec2-3-239-7-26.compute-1.amazonaws.com', 'ec2-54-197-124-171.compute-1.amazonaws.com', 'ec2-3-235-231-25.compute-1.amazonaws.com', 'ec2-44-200-62-211.compute-1.amazonaws.com', 'ec2-3-235-137-150.compute-1.amazonaws.com']
+    #info = {'standalone': {'id': 'i-0c8456840af8e14a5', 'private_dns': 'ip-172-31-15-44.ec2.internal', 'public_dns': 'ec2-54-236-31-31.compute-1.amazonaws.com', 'private_ip': '172.31.15.44'}, 'master': {'id': 'i-0d72c96ac83a86b85', 'private_dns': 'ip-172-31-4-166.ec2.internal', 'public_dns': 'ec2-35-153-156-168.compute-1.amazonaws.com', 'private_ip': '172.31.4.166'}, 'workers': [{'id': 'i-00e9d0ba2a9203f40', 'private_dns': 'ip-172-31-6-233.ec2.internal', 'public_dns': 'ec2-44-204-103-71.compute-1.amazonaws.com', 'private_ip': '172.31.6.233'}, {'id': 'i-051811b455383545c', 'private_dns': 'ip-172-31-70-167.ec2.internal', 'public_dns': 'ec2-3-239-7-26.compute-1.amazonaws.com', 'private_ip': '172.31.70.167'}, {'id': 'i-011544c6b93a74b66', 'private_dns': 'ip-172-31-63-177.ec2.internal', 'public_dns': 'ec2-54-197-124-171.compute-1.amazonaws.com', 'private_ip': '172.31.63.177'}], 'proxy': {'id': 'i-01175843329c9429d', 'private_dns': 'ip-172-31-4-247.ec2.internal', 'public_dns': 'ec2-3-235-231-25.compute-1.amazonaws.com', 'private_ip': '172.31.4.247'}, 'trusted_host': {'id': 'i-09191b4c5ecad52a3', 'private_dns': 'ip-172-31-10-222.ec2.internal', 'public_dns': 'ec2-44-200-62-211.compute-1.amazonaws.com', 'private_ip': '172.31.10.222'}, 'gatekeeper': {'id': 'i-0a1f14b5d7ff6c270', 'private_dns': 'ip-172-31-5-177.ec2.internal', 'public_dns': 'ec2-3-235-137-150.compute-1.amazonaws.com', 'private_ip': '172.31.5.177'}}
     
     #############################################################
     ################  STANDALONE INIT ###########################
@@ -117,6 +117,8 @@ if __name__ == "__main__":
     stdin, stdout, stderr = ssh.exec_command(command)
     time.sleep(10)
     command = utils_proxy.setup_instance_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    command = utils_scripts.get_proxy_firewall_cmd(info)
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
@@ -161,6 +163,8 @@ if __name__ == "__main__":
     command = f'''echo \"{f}\" >flask_app.py'''
     stdin, stdout, stderr = ssh.exec_command(command)
     stdin, stdout, stderr = ssh.exec_command("python3 flask_app.py")
+    command = utils_scripts.get_trusted_firewall_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
 
@@ -180,6 +184,8 @@ if __name__ == "__main__":
     #stdin, stdout, stderr = ssh.exec_command(command)
     command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
     stdin, stdout, stderr = ssh.exec_command(command)
+    command = utils_scripts.get_cluster_firewall_cmd(info)
+    stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
 
     #############################################################
@@ -198,6 +204,8 @@ if __name__ == "__main__":
         #command = utils_scripts.get_firewall_cmd(info)
         #stdin, stdout, stderr = ssh.exec_command(command)
         command = f'. ./initialize.sh 1>>std.txt 2>>err.txt'
+        stdin, stdout, stderr = ssh.exec_command(command)
+        command = utils_scripts.get_cluster_firewall_cmd(info)
         stdin, stdout, stderr = ssh.exec_command(command)
         ssh.close()
 

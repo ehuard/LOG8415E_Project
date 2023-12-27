@@ -6,9 +6,8 @@ import json
 
 def get_benckmark_cmd(cluster:bool, mode="oltp_read_write", num_threads=4):
      """
-     
      Refers to https://manpages.org/sysbench
-     The commands on mes Coyle's blog https://www.jamescoyle.net/how-to/1131-benchmark-mysql-server-performance-with-sysbench 
+     The commands on James Coyle's blog https://www.jamescoyle.net/how-to/1131-benchmark-mysql-server-performance-with-sysbench 
      don't work with the version of sysbench I installed
      """
      # --max-requests=0 means unlimited (and by default, it is not)

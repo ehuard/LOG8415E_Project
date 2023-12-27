@@ -27,7 +27,10 @@ def read():
         response = requests.post(dest_url, json=payload)
         if response.status_code == 200:
             result = response.json()
-            if 'result' in result: result=result['result']
+            try:
+                result = result['result']
+            except Exception as e:
+                pass
         else:
             result= 'Error:' + response.text
 
@@ -48,7 +51,10 @@ def write():
         response = requests.post(dest_url, json=payload)
         if response.status_code == 200:
             result = response.json()
-            if 'result' in result: result=result['result']
+            try:
+                result = result['result']
+            except Exception as e:
+                pass
         else:
             result= 'Error:' + response.text
 
@@ -63,6 +69,10 @@ if __name__ == '__main__':
 
 def get_trusted_host_app(info):
     """
+    Dynamically creates the content of the python file used for the flask application in the trusted host
+
+    Parameters:
+    - info: Dictionnary containing all the information about our instances (see data.json).
     """
     flask_file=f'''from flask import Flask, request, jsonify 
 import requests

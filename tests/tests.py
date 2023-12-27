@@ -1,20 +1,16 @@
-# from ping3 import ping
-# # pinger = ping3.Ping(timeout=1)
-# import mysql.connector
-
-# a = ping("192.168.1.75")
-# print(a)
+# Deprecated since I added the firewalls
+# Only keep it here to see the basic requests
 
 import requests
 
 # Flask proxy server URL
-proxy_url = "http://ec2-3-238-187-45.compute-1.amazonaws.com:5000/query" 
+proxy_url = "http://ec2-3-235-249-218.compute-1.amazonaws.com:5000/query" 
 
 # SQL query and mode information
-query = "SELECT * FROM actor LIMIT 5;"
-#query = "INSERT INTO actor VALUES(201, 'Jean', 'Reno', NOW());"
-#mode = "write"
-mode = 'direct-hit'
+#query = "SELECT * FROM actor LIMIT 5;"
+query = "INSERT INTO actor VALUES(205, 'Jean', 'Reno', NOW());"
+mode = "write"
+#mode = 'direct-hit'
 
 # JSON payload
 payload = {
