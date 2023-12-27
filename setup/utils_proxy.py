@@ -22,6 +22,7 @@ def get_mysql_connection(host, user='proxy', password='pwd', database='sakila'):
     
 def handle_write(query):
     try:
+        print('Trying to send a write request to the master')
         # Connect to the master node
         connection = get_mysql_connection('{info['master']['private_ip']}')
         # Execute the query
@@ -45,6 +46,7 @@ def handle_write(query):
 
 def direct_hit(query):
     try:
+        print('Trying to send a read request to the master')
         # Connect to the master node
         connection = get_mysql_connection('{info['master']['private_ip']}')
         # Execute the query
@@ -140,6 +142,7 @@ def execute_query():
 
     if mode == 'direct-hit':
         # Send query to the master node
+        print('Reading on master')
         return direct_hit(query)
     elif mode == 'random':
         # Send query to a random worker node
@@ -148,6 +151,7 @@ def execute_query():
         # Measure ping and send query to the worker with the lowest ping
         return customized_mode(query)
     elif mode == 'write':
+        print('Writing on master')
         return handle_write(query)
 
         
@@ -176,14 +180,3 @@ def create_proxy_user_cmd(info):
     cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
 sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"1>oy.txt 2>hmm.txt'''
     return cmd
-
-
-# import json 
-
-# with open("data.json", 'r') as var_file: 
-#             data = json.load(var_file)           
-#             instance_standalone = data["standalone"]
-#             instance_master = data["master"]
-
-# a=setup_instance_cmd(data)
-# print(a)

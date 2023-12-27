@@ -24,10 +24,6 @@ def get_benckmark_cmd(cluster:bool, mode="oltp_read_write", num_threads=4):
 
 if __name__ == "__main__":
 
-    #hey = get_benckmark_cmd(True)
-    #print(hey)
-    #exit()
-
     with open("data.json", 'r') as var_file: 
             data = json.load(var_file)           
             instance_standalone = data["standalone"]
@@ -46,9 +42,20 @@ if __name__ == "__main__":
     command = get_benckmark_cmd(cluster=True)
     stdin, stdout, stderr = ssh.exec_command(command)
     ssh.close()
+    
+    time.sleep(65)
+    ssh.connect(instance_standalone["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    command = get_benckmark_cmd(cluster=False, mode="oltp_read_only")
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()
+
+    ssh.connect(instance_master["public_dns"], username="ubuntu", key_filename="key_pair_project.pem")
+    command = get_benckmark_cmd(cluster=True, mode="oltp_read_only")
+    stdin, stdout, stderr = ssh.exec_command(command)
+    ssh.close()
 
     time.sleep(65)
-    files_to_retrieve = ["bench_result_oltp_read_write.txt"]
+    files_to_retrieve = ["bench_result_oltp_read_write.txt", "bench_result_oltp_read_only.txt"]
     for file_name in files_to_retrieve:
         remote_file_path = file_name
         local_file_path = f"tests/benchmark_results/standalone_{file_name}"
