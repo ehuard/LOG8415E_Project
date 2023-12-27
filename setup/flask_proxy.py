@@ -95,7 +95,27 @@ def customized_mode(query):
         if connection.is_connected():
             connection.close()
 
-
+def handle_write(query):
+    try:
+        # Connect to the master node
+        connection = get_mysql_connection({info["master"]["private_ip"]})
+        # Execute the query
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        result = cursor.comit()
+        # Process the result as needed
+        # ...
+        cursor.close()
+        res = dict()
+        res["result"]=result
+        return jsonify(res)
+    except Exception as e:
+        err = dict()
+        err["error"] = str(e)
+        return jsonify(err)
+    finally:
+        if connection.is_connected():
+            connection.close()
     
 @app.route('/')
 def hello():
@@ -117,6 +137,10 @@ def execute_query():
     elif mode == "customized":
         # Measure ping and send query to the worker with the lowest ping
         return customized_mode(query)
+    elif mode == "write":
+        # Write queries are alaways handled by the master
+        return handle_write(query)
+
 
         
 if __name__ == "__main__":

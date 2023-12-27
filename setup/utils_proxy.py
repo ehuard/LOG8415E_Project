@@ -19,6 +19,30 @@ def get_mysql_connection(host, user='proxy', password='pwd', database='sakila'):
         database=database
     )
 
+    
+def handle_write(query):
+    try:
+        # Connect to the master node
+        connection = get_mysql_connection('{info['master']['private_ip']}')
+        # Execute the query
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        result = connection.commit()
+        # Process the result as needed
+        # ...
+        cursor.close()
+        res = dict()
+        res['result']=result
+        return jsonify(res)
+    except Exception as e:
+        err = dict()
+        err['error'] = str(e)
+        return jsonify(err)
+    finally:
+        if 'connection' in locals() and connection.is_connected():
+            connection.close()
+
+
 def direct_hit(query):
     try:
         # Connect to the master node
@@ -123,6 +147,8 @@ def execute_query():
     elif mode == 'customized':
         # Measure ping and send query to the worker with the lowest ping
         return customized_mode(query)
+    elif mode == 'write':
+        return handle_write(query)
 
         
 if __name__ == '__main__':
@@ -147,8 +173,8 @@ def create_proxy_user_cmd(info):
     """
     Dynamically creates the command used on the master node to create a new user, proxy on a distant machine
     """      
-    cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
-sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"'''
+    cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
+sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"1>oy.txt 2>hmm.txt'''
     return cmd
 
 

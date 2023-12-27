@@ -8,10 +8,11 @@
 import requests
 
 # Flask proxy server URL
-proxy_url = "http://ec2-44-215-127-221.compute-1.amazonaws.com:5000/query" 
+proxy_url = "http://ec2-44-202-221-28.compute-1.amazonaws.com:5000/query" 
 
 # SQL query and mode information
-query = "SELECT * FROM actor LIMIT 5"
+query = "SELECT * FROM actor ORDER BY 'actor_id';"
+#query = "INSERT INTO actor VALUES(202, 'Jean', 'Reno', NOW());"
 mode = "direct-hit"
 
 # JSON payload
@@ -32,8 +33,10 @@ else:
     print("Error:", response.text)
 
 
-#sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'ip-172-31-12-60.ec2.internal' IDENTIFIED BY 'pwd';"
+#sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'ip-172-31-10-64.ec2.internal' IDENTIFIED BY 'pwd';"
 
-#sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'ip-172-31-12-60.ec2.internal';"
+#sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'ip-172-31-10-64.ec2.internal';"
 
+
+# sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e ""
 # netstat -pnltu
