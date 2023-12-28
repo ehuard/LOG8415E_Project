@@ -89,50 +89,23 @@ def create_security_group(client, name, ports, description="Default security gro
             GroupId=id,
             IpPermissions= permissions
         )
+        client.authorize_security_group_ingress(
+                GroupId=id,
+                IpPermissions=[
+                    {
+                        'FromPort': -1,
+                        'ToPort': -1,
+                        'IpProtocol': 'ICMP', # need to open icmp for pings
+                        'IpRanges': [{
+                                'CidrIp': '0.0.0.0/0',
+                                'Description': "ping"
+                            },]
+                    }])
         return id
     except Exception as e:
         print(f"An error occurred while creating the security group: {e}")
         return None
     
-def create_permissive_security_group(client, name, ports, description="Default security group"):
-    """
-    Create a security group and returns its id
-
-    Parameters
-    ----------
-    client :
-        The ec2 client
-    name : string
-        Name of the security group
-    ports: int[]
-        The ports that can receive and emit traffic
-    description : string, optional
-        Description of the security group
-
-     Returns
-    -------
-    id : int
-        The security group id
-    """
-    try : 
-        response = client.create_security_group(GroupName=name, Description=description)
-        id = response["GroupId"]
-        client.authorize_security_group_ingress(
-            GroupId=id,
-            IpPermissions=[
-                {
-                    'IpProtocol': '-1',
-                    'FromPort': -1,
-                    'ToPort': -1,
-                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
-                }
-            ],
-        )
-        return id
-    except Exception as e:
-        print(f"An error occurred while creating the security group: {e}")
-        return None
-
 
 def create_one_instance(ec2_ressource, ami_id, instance_type, security_group_id, subnet_id, key_name):
     """

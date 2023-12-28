@@ -102,7 +102,7 @@ def customized_mode(query):
     lowest_ping = float('inf')
     best_worker = None
 
-    for worker in info['workers']:
+    for worker in {info['workers']}:
         private_ip = worker['private_ip']
         current_ping = ping(private_ip)
 
@@ -179,7 +179,7 @@ python3 flask_app.py'''
 
 def create_proxy_user_cmd(info):
     """
-    Dynamically creates the command used on the master node to create a new user, proxy on a distant machine
+    Dynamically creates the command used on the master node to create a new user, 'proxy' (password='pwd'), on a distant machine
     """      
     cmd =  f'''sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "CREATE USER 'proxy'@'{info['proxy']['private_dns']}' IDENTIFIED BY 'pwd';" \n\
 sudo /opt/mysqlcluster/home/mysqlc/bin/mysql -uroot -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'proxy'@'{info['proxy']['private_dns']}';"'''
